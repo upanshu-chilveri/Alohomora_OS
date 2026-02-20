@@ -1,7 +1,8 @@
 ORG 0X7C00          ;injection address of program
 BITS 16             ;16-bit code
 
-%define ENDL 0x0D, 0x0A            
+%define ENDL 0x0D, 0x0A       ;used to define the ENDL in nasm
+
 
 
 start:
@@ -9,6 +10,7 @@ start:
 
 
 
+;-----------------------------------------------------------------------------------------------------------'
 
 ;writing funtion to print string into the bootloader
 
@@ -60,7 +62,7 @@ main:               ;main program entry point
 
 
 
-msg_hello: db "hello world!", ENDL, 0
+msg_hello: db "Hello world!", ENDL, 0
 
 
 
