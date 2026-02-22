@@ -80,7 +80,7 @@ bool readSectors(FILE* disk, uint32_t lba, uint32_t count, void* bufferOut){
     bool ok = true;
     ok = ok && (fseek(disk, lba*g_BootSector.BytesPerSector, SEEK_SET) == 0);
     ok = ok && (fread(bufferOut, g_BootSector.BytesPerSector, count, disk) == count);
-    return ok
+    return ok;
 }
 
 //loads the fat into the g_Fat Buffer
@@ -94,7 +94,7 @@ bool readRootDirectory(FILE* disk){
     //calculating the correct address location
 
     uint32_t lba = g_BootSector.ReservedSectors + g_BootSector.SectorsPerFat * g_BootSector.FatCount;
-    uint32_t size = sizeof(DirectoryEntry) + g_BootSector.DirEntryCount;
+    uint32_t size = sizeof(DirectoryEntry) * g_BootSector.DirEntryCount;
     uint32_t sectors = (size / g_BootSector.BytesPerSector);
 
     if(size % g_BootSector.BytesPerSector > 0)
@@ -125,7 +125,7 @@ bool readFile(DirectoryEntry* fileEntry, FILE* disk, uint8_t* outputBuffer){
 
     do{
 
-        uint32_t lba = g_RootDirectoryEnd + (currentCluster - 2) * g_BootSector.BytesPerSector;
+        uint32_t lba = g_RootDirectoryEnd + (currentCluster - 2) * g_BootSector.SectorsPerCluster;
         ok = ok && readSectors(disk, lba, g_BootSector.SectorsPerCluster, outputBuffer);
         outputBuffer += g_BootSector.SectorsPerCluster * g_BootSector.BytesPerSector;
 
@@ -146,16 +146,22 @@ bool readFile(DirectoryEntry* fileEntry, FILE* disk, uint8_t* outputBuffer){
 int main(int argc, char ** argv){
 
     if(argc < 3){
-        printf("SYNTAX: %s <disk image> <file name>", argv[0]);
+        printf("SYNTAX: %s <disk image> <file name>\n", argv[0]);
         return -1;
     }
 
     //opening the file provided in Read Binary mode
     FILE* disk = fopen(argv[1], "rb");
 
+    if (!disk) {
+    fprintf(stderr, "Cannot open disk image %s!\n", argv[1]);
+    return -1;
+    }
+
+    
     if(!readBootSector(disk)){
         fprintf(stderr, "Could not read Boot Sector!\n");
-        return -2
+        return -2;
     }
 
     if(!readFat(disk)){
@@ -171,7 +177,7 @@ int main(int argc, char ** argv){
         return -4;
     }
 
-    DirectoryEntry* fileEntry = findFile(argv[2]);
+    DirectoryEntry* fileEntry = fileFind(argv[2]);
     if(!fileEntry){
         fprintf(stderr, "Could not find file %s\n", argv[2]);
         free(g_Fat);
@@ -179,10 +185,10 @@ int main(int argc, char ** argv){
         return -5;
     }
 
-    uint8_t buffer = (uint8_t*) malloc(fileEntry->Size + g_BootSector.BytesPerSector);
+    uint8_t* buffer = (uint8_t*) malloc(fileEntry->Size + g_BootSector.BytesPerSector);
 
     if(!readFile(fileEntry, disk, buffer)){
-        fprintf(stderr, "Could not read fil %s\n", argv[2]);
+        fprintf(stderr, "Could not read file %s\n", argv[2]);
         free(g_Fat);
         free(g_RootDirectory);
         free(buffer);
@@ -192,8 +198,7 @@ int main(int argc, char ** argv){
     //prints the buffer into the terminal at last
 
     for(size_t i = 0 ; i < fileEntry->Size; i++){
-        if(isprint(buffer[i]))
-            fputc(buffer[i],stdout);
+        if(isprint(buffer[i])) fputc(buffer[i], stdout);
         else
             printf("<%02x>", buffer[i]);
     }
