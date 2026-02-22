@@ -15,7 +15,7 @@ bdb_sector_per_cluster:     db 1
 bdb_reserved_sectors:       dw 1
 bdb_fat_count:              db 2
 bdb_dir_entries_count:      dw 0E0h
-bdb_total_sectorsL          dw 2880
+bdb_total_sectors           dw 2880
 bdb_media_descriptor_type:  db 0F0h
 bdb_sectors_per_fat:        dw 9
 bdb_sectors_per_track:      dw 18
