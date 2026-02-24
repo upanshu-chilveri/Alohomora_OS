@@ -1,0 +1,1 @@
+sudo apt install nasm build-essential make qemu-system-x86 mtools
