@@ -78,6 +78,11 @@ The purpose of this project was not just to build a minimal OS, but to thoroughl
 
 Build the project:
 
+### Install the required tools and dependencies
+```bash
+./requirements.sh
+```
+
 ### Using Shell command
 ```bash
 ./run.sh
